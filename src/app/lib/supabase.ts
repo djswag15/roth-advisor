@@ -84,7 +84,7 @@ export async function loadSessionByShareToken(shareToken: string): Promise<Sessi
 export function generateShareLink(shareToken: string): string {
   const baseUrl = typeof window !== 'undefined' 
     ? window.location.origin 
-    : 'https://roth-advisor.vercel.app'
+    : 'https://nestwise.biz'
   return `${baseUrl}?share=${shareToken}`
 }
 
@@ -124,7 +124,7 @@ export async function syncSessionToCloud(session: Session): Promise<void> {
 
 // ─── Local session helpers ─────────────────────────────────────────────────────
 
-const SESSIONS_KEY = 'roth-sessions-v2'
+const SESSIONS_KEY = 'nestwise-sessions-v2'
 
 function getAllLocalSessions(): Record<string, Session> {
   try {

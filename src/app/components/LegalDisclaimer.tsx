@@ -51,7 +51,7 @@ export default function LegalDisclaimer() {
         <div style={{ fontSize: '13px', lineHeight: '1.6', color: '#4b5563', marginBottom: '20px' }}>
           <h3>Important Disclaimer</h3>
           <p>
-            <strong>Roth Advisor is not a substitute for professional financial advice.</strong> This tool provides
+            <strong>NestWise is not a substitute for professional financial advice.</strong> This tool provides
             educational analysis based on your inputs. It does not constitute investment advice, tax advice, or a
             recommendation to take any action.
           </p>
@@ -78,7 +78,7 @@ export default function LegalDisclaimer() {
 
           <h3>Limitation of Liability</h3>
           <p>
-            Roth Advisor is provided "as is" without warranties. We are not liable for any financial losses, tax
+            NestWise is provided "as is" without warranties. We are not liable for any financial losses, tax
             liabilities, or other damages resulting from use of this tool. Use is entirely at your own risk.
           </p>
 
@@ -90,7 +90,7 @@ export default function LegalDisclaimer() {
 
           <h3>Terms of Service</h3>
           <p>
-            By using Roth Advisor, you agree to our Terms of Service. We reserve the right to modify this tool and
+            By using NestWise, you agree to our Terms of Service. We reserve the right to modify this tool and
             terms at any time.
           </p>
         </div>

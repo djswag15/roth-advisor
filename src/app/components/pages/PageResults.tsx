@@ -9,7 +9,7 @@ import {
 } from 'chart.js'
 import { analyze, fmt, fmtK } from '@/app/lib/engine'
 import { PDFDownloadLink } from '@react-pdf/renderer'
-import { RothAdvisorPDF } from '@/app/lib/pdf'
+import { NestWisePDF } from '@/app/lib/pdf'
 import EmailCaptureModal from '@/app/components/EmailCaptureModal'
 import ScenarioComparison from '@/app/components/ScenarioComparison'
 import AdvisorEmailButton from '@/app/components/AdvisorEmailButton'
@@ -108,7 +108,7 @@ export default function PageResults({ state, chatHistory, chatInitialized, onCha
             })
           }}>
             <PDFDownloadLink 
-              document={<RothAdvisorPDF state={state} analysis={a} />} 
+              document={<NestWisePDF state={state} analysis={a} />} 
               fileName={`roth-advisor-${new Date().toISOString().split('T')[0]}.pdf`}
               className="btn btn-sm"
               style={{ fontSize: '13px' }}

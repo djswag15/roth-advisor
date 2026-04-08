@@ -25,7 +25,7 @@ export const emailTemplates = {
     retirementBracket: number,
     rmdEst: number
   ) => ({
-    subject: `Your Roth Conversion Analysis from Roth Advisor`,
+    subject: `Your Roth Conversion Analysis from NestWise`,
     html: `
       <!DOCTYPE html>
       <html>
@@ -46,13 +46,13 @@ export const emailTemplates = {
           <div class="container">
             <div class="header">
               <h1>Your Roth Conversion Analysis</h1>
-              <p>Generated from Roth Advisor</p>
+              <p>Generated from NestWise</p>
             </div>
             
             <div class="content">
               <p>Hi ${userName},</p>
               
-              <p>Your Roth Advisor analysis has been completed. Here's your personalized strategy:</p>
+              <p>Your NestWise analysis has been completed. Here's your personalized strategy:</p>
               
               <div class="metric-row">
                 <span class="metric-label">Age:</span>
@@ -89,12 +89,12 @@ export const emailTemplates = {
                 Share this analysis with your CPA or financial advisor. Timing and tax law changes can significantly impact the optimal conversion strategy for your situation.
               </p>
               
-              <a href="https://roth-advisor.vercel.app" class="button">View Full Analysis</a>
+              <a href="https://nestwise.biz" class="button">View Full Analysis</a>
             </div>
             
             <div class="footer">
               <p>This email contains your personalized analysis. Please keep it confidential and only share with your financial advisors.</p>
-              <p>&copy; 2026 Roth Advisor. All rights reserved.</p>
+              <p>&copy; 2026 NestWise. All rights reserved.</p>
             </div>
           </div>
         </body>
@@ -103,7 +103,7 @@ export const emailTemplates = {
   }),
 
   taxUpdateNotification: (taxUpdate: string, affectedUsers: string) => ({
-    subject: `⚠️ Tax Law Change Alert from Roth Advisor`,
+    subject: `⚠️ Tax Law Change Alert from NestWise`,
     html: `
       <!DOCTYPE html>
       <html>
@@ -127,12 +127,12 @@ export const emailTemplates = {
             
             <p>A recent change in tax law may impact your Roth conversion strategy. We recommend reviewing your plan with your financial advisor.</p>
             
-            <p>Log into Roth Advisor to run an updated analysis with the latest tax assumptions.</p>
-            
-            <a href="https://roth-advisor.vercel.app" class="button">Review Your Analysis</a>
+<p>Log into NestWise to run an updated analysis with the latest tax assumptions.</p>
+
+            <a href="https://nestwise.biz" class="button">Review Your Analysis</a>
             
             <div class="footer">
-              <p>&copy; 2026 Roth Advisor. Unsubscribe by replying to this email.</p>
+              <p>&copy; 2026 NestWise. Unsubscribe by replying to this email.</p>
             </div>
           </div>
         </body>
@@ -169,7 +169,7 @@ export async function sendAdvisorEmail(
     )
 
     const result = await getResend().emails.send({
-      from: 'Roth Advisor <noreply@rothadvisor.dev>',
+      from: 'NestWise <noreply@nestwise.biz>',
       to: toEmail,
       subject: template.subject,
       html: template.html,
@@ -197,7 +197,7 @@ export async function sendTaxUpdateNotification(
     const template = emailTemplates.taxUpdateNotification(taxUpdate, affectedUsers)
 
     const result = await getResend().emails.send({
-      from: 'Roth Advisor <noreply@rothadviser.dev>',
+      from: 'NestWise <noreply@nestwise.biz>',
       to: toEmails,
       subject: template.subject,
       html: template.html,

@@ -97,7 +97,7 @@ interface PDFProps {
   analysis: Analysis
 }
 
-export const RothAdvisorPDF = ({ state, analysis }: PDFProps) => {
+export const NestWisePDF = ({ state, analysis }: PDFProps) => {
   const formatCurrency = (val: number) => `$${val.toLocaleString('en-US', { maximumFractionDigits: 0 })}`
   const formatPercent = (val: number) => `${(val * 100).toFixed(1)}%`
 
@@ -126,7 +126,7 @@ export const RothAdvisorPDF = ({ state, analysis }: PDFProps) => {
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Roth Conversion Analysis</Text>
+          <Text style={styles.title}>Roth Conversion Analysis — NestWise</Text>
           <Text style={styles.subtitle}>Personal Retirement Strategy Report</Text>
           <Text style={styles.subtitle}>
             Generated: {new Date().toLocaleDateString()} • Age {state.age}
@@ -305,7 +305,7 @@ export const RothAdvisorPDF = ({ state, analysis }: PDFProps) => {
 
 // Helper to generate PDF blob
 export async function generatePDFBlob(state: SessionState, analysis: Analysis): Promise<Blob> {
-  const PDFDoc = RothAdvisorPDF({ state, analysis })
+  const PDFDoc = NestWisePDF({ state, analysis })
   // @ts-ignore - react-pdf types are incomplete
   return await PDFDoc.toBlob()
 }
