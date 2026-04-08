@@ -21,6 +21,14 @@ export interface SessionState {
   heirFlag: boolean
   ssEarnings: number
   currentPage: number
+  // Compliance fields (optional, for enhanced IRS alignment)
+  hasMultipleIras?: boolean
+  nonDeductibleContributions?: number
+  employerStockInPlans?: number
+  employerStockCostBasis?: number
+  charityGoals?: number
+  currentState?: string
+  yearsToRetire?: number
 }
 
 export interface Session {
@@ -90,6 +98,16 @@ export interface Analysis {
   yearsInRetirement: number
   expectedReturn: number
   conversionAmount: number
+  // Compliance/regulatory data
+  complianceWarnings?: string[]
+  complianceRecommendations?: string[]
+  requiresCpaReview?: boolean
+  irmaaDetail?: {
+    magi: number
+    partBSurcharge: number
+    partDSurcharge: number
+    totalAnnualSurcharge: number
+  }
 }
 
 // ─── 2024 Tax Brackets ────────────────────────────────────────────────────────
@@ -147,6 +165,8 @@ export function topOfBracket(income: number, filing: string): number {
 }
 
 // ─── Main Analysis Engine ─────────────────────────────────────────────────────
+
+import { generateComplianceReport, calculateEnhancedIrmaa } from './compliance'
 
 export function analyze(s: SessionState): Analysis {
   const ret = s.expectedReturn / 100
@@ -300,6 +320,47 @@ export function analyze(s: SessionState): Analysis {
     yearsInRetirement: s.yearsInRetirement,
     expectedReturn: s.expectedReturn,
     conversionAmount: s.conversionAmount || 0,
+    ...(() => {
+      // Generate compliance report
+      const report = generateComplianceReport(
+        s.age,
+        s.filing,
+        s.trad,
+        s.roth,
+        s.conversionAmount || 0,
+        s.annualIncome + s.pensionSSI, // MAGI
+        yearsToRMD,
+        s.yearsInRetirement,
+        s.hasMultipleIras ?? false,
+        s.nonDeductibleContributions ?? 0,
+        s.employerStockInPlans ?? 0,
+        s.employerStockCostBasis ?? 0,
+        s.charityGoals ?? 0,
+        s.currentState ?? 'CA', // Default to CA as conservative estimate
+        s.heirFlag ?? false,
+        margNow,
+        s.yearsToRetire ?? 0
+      )
+
+      const irmaaDetail = calculateEnhancedIrmaa(
+        s.age,
+        s.annualIncome + s.pensionSSI + (s.conversionAmount || 0) * 0.5,
+        s.filing,
+        s.yearsInRetirement
+      )
+
+      return {
+        complianceWarnings: report.warnings,
+        complianceRecommendations: report.recommendations,
+        requiresCpaReview: report.requiresCpaReview,
+        irmaaDetail: {
+          magi: irmaaDetail.magi,
+          partBSurcharge: irmaaDetail.partBSurcharge,
+          partDSurcharge: irmaaDetail.partDSurcharge,
+          totalAnnualSurcharge: irmaaDetail.totalAnnualSurcharge,
+        },
+      }
+    })(),
   }
 }
 

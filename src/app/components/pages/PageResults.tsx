@@ -13,6 +13,7 @@ import { RothAdvisorPDF } from '@/app/lib/pdf'
 import EmailCaptureModal from '@/app/components/EmailCaptureModal'
 import ScenarioComparison from '@/app/components/ScenarioComparison'
 import AdvisorEmailButton from '@/app/components/AdvisorEmailButton'
+import CpaReviewModal from '@/app/components/CpaReviewModal'
 import type { SessionState, ChatMessage, Session } from '@/app/lib/engine'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler)
@@ -33,11 +34,23 @@ export default function PageResults({ state, chatHistory, chatInitialized, onCha
   const [isClient, setIsClient] = useState(false)
   const [showEmailModal, setShowEmailModal] = useState(false)
   const [emailModalShown, setEmailModalShown] = useState(false)
+  const [showCpaModal, setShowCpaModal] = useState(false)
   const a = analyze(state)
 
   useEffect(() => {
     setIsClient(true)
   }, [])
+
+  // Show CPA review modal if needed (only once per session)
+  useEffect(() => {
+    if (isClient && a.requiresCpaReview && !sessionStorage.getItem('cpa-modal-shown')) {
+      const timer = setTimeout(() => {
+        setShowCpaModal(true)
+        sessionStorage.setItem('cpa-modal-shown', 'true')
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [isClient, a.requiresCpaReview])
 
   // Show email capture modal on first page load
   useEffect(() => {
@@ -59,6 +72,13 @@ export default function PageResults({ state, chatHistory, chatInitialized, onCha
 
   return (
     <>
+      {showCpaModal && (
+        <CpaReviewModal 
+          analysis={a}
+          onDismiss={() => setShowCpaModal(false)}
+        />
+      )}
+
       {showEmailModal && sessionId && (
         <EmailCaptureModal 
           sessionId={sessionId} 
