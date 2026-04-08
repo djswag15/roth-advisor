@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import type { SessionState } from '@/app/lib/engine'
 import { analyze, fmt, fmtK } from '@/app/lib/engine'
 import { getComparisonMetrics } from '@/app/lib/scenarios'
+import { analytics } from '@/app/lib/analytics'
 
 interface ScenarioComparisonProps {
   state: SessionState
@@ -16,6 +17,15 @@ export default function ScenarioComparison({ state }: ScenarioComparisonProps) {
   const comparisonAnalysis = analyze(comparisonState)
 
   const metrics = getComparisonMetrics(primaryAnalysis, comparisonAnalysis)
+
+  const handleScenarioChange = useCallback((newAmount: number) => {
+    setScenarioAmount(newAmount)
+    // Track scenario comparison interaction
+    analytics.trackFeatureUsage('scenario_comparison', 'adjusted_slider', {
+      conversion_amount: newAmount,
+      delta_from_primary: newAmount - state.conversionAmount,
+    })
+  }, [state.conversionAmount])
 
   const formatPercent = (val: number) => `${(val * 100).toFixed(1)}%`
   const getChange = (val1: number, val2: number) => {
@@ -69,7 +79,7 @@ export default function ScenarioComparison({ state }: ScenarioComparisonProps) {
               max={state.trad}
               step="10000"
               value={scenarioAmount}
-              onChange={(e) => setScenarioAmount(Number(e.target.value))}
+              onChange={(e) => handleScenarioChange(Number(e.target.value))}
               style={{ flex: 1 }}
             />
           </div>

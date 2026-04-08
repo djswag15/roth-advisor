@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { Analysis, SessionState } from '@/app/lib/engine'
+import { analytics } from '@/app/lib/analytics'
 
 interface AdvisorEmailProps {
   state: SessionState
@@ -20,6 +21,7 @@ export default function AdvisorEmailButton({ state, analysis }: AdvisorEmailProp
     
     if (!advisorEmail || !advisorEmail.includes('@')) {
       setError('Please enter a valid email address')
+      analytics.trackError('advisor_email_validation_failed', { reason: 'invalid_email' })
       return
     }
 
@@ -44,15 +46,22 @@ export default function AdvisorEmailButton({ state, analysis }: AdvisorEmailProp
       if (response.ok) {
         setSent(true)
         setAdvisorEmail('')
+        // Track conversion
+        analytics.trackConversion('advisor_email_sent', 1, { 
+          advisor_email: advisorEmail,
+          conversion_amount: analysis.optConv 
+        })
         setTimeout(() => {
           setSent(false)
           setShowForm(false)
         }, 2000)
       } else {
         setError('Failed to send email. Please try again.')
+        analytics.trackError('advisor_email_send_failed', { status: response.status })
       }
     } catch (err) {
       setError('An error occurred. Please try again.')
+      analytics.trackError('advisor_email_exception', { error: String(err) })
     } finally {
       setLoading(false)
     }

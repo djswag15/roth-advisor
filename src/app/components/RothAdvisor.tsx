@@ -8,6 +8,7 @@ import {
 } from '@/app/lib/sessions'
 import { getShareTokenFromUrl, loadSessionByShareToken, syncSessionToCloud, generateShareLink } from '@/app/lib/supabase'
 import type { Session, SessionState } from '@/app/lib/engine'
+import { analytics } from '@/app/lib/analytics'
 import WelcomeScreen from './WelcomeScreen'
 import { PageAbout, PageSavings, PageIncome, PageGoals } from './pages/PageAbout'
 import PageResults from './pages/PageResults'
@@ -28,6 +29,8 @@ export default function RothAdvisor() {
       // Check if loading from shared link
       const token = getShareTokenFromUrl()
       if (token) {
+        // Track share link click
+        analytics.trackConversion('share_link_opened', 1, { share_token: token.substring(0, 8) })
         const sharedSession = await loadSessionByShareToken(token)
         if (sharedSession) {
           setSession(migrateSession(sharedSession))

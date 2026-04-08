@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { saveEmailToSupabase, isValidEmail } from '@/app/lib/email'
+import { analytics } from '@/app/lib/analytics'
 
 interface EmailCaptureModalProps {
   sessionId: string
@@ -19,6 +20,7 @@ export default function EmailCaptureModal({ sessionId, onClose }: EmailCaptureMo
     
     if (!isValidEmail(email)) {
       setError('Please enter a valid email address')
+      analytics.trackError('email_validation_failed', { reason: 'invalid_format' })
       return
     }
 
@@ -29,14 +31,19 @@ export default function EmailCaptureModal({ sessionId, onClose }: EmailCaptureMo
       const success = await saveEmailToSupabase(email, sessionId)
       if (success) {
         setSubmitted(true)
+        // Track email capture conversion
+        analytics.identifySession(email, { session_id: sessionId })
+        analytics.trackConversion('email_captured', 1, { email_domain: email.split('@')[1] })
         setTimeout(() => {
           onClose()
         }, 2000)
       } else {
         setError('Failed to save email. Please try again.')
+        analytics.trackError('email_save_failed')
       }
     } catch (err) {
       setError('An error occurred. Please try again.')
+      analytics.trackError('email_capture_exception', { error: String(err) })
     } finally {
       setLoading(false)
     }

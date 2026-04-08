@@ -52,6 +52,17 @@ export default function PageResults({ state, chatHistory, chatInitialized, onCha
     }
   }, [isClient, a.requiresCpaReview])
 
+  // Track CPA modal view
+  useEffect(() => {
+    if (showCpaModal) {
+      const { analytics } = require('@/app/lib/analytics')
+      analytics.trackFeatureUsage('cpa_modal', 'viewed', {
+        compliance_warnings: a.complianceWarnings?.length || 0,
+        requires_cpa: a.requiresCpaReview,
+      })
+    }
+  }, [showCpaModal, a.complianceWarnings, a.requiresCpaReview])
+
   // Show email capture modal on first page load
   useEffect(() => {
     if (isClient && !emailModalShown && activeTab === 0) {
@@ -89,14 +100,22 @@ export default function PageResults({ state, chatHistory, chatInitialized, onCha
       <div style={{ fontSize: 22, fontWeight: 500, marginBottom: '.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <span>Your personalized analysis</span>
         {isClient && (
-          <PDFDownloadLink 
-            document={<RothAdvisorPDF state={state} analysis={a} />} 
-            fileName={`roth-advisor-${new Date().toISOString().split('T')[0]}.pdf`}
-            className="btn btn-sm"
-            style={{ fontSize: '13px' }}
-          >
-            📥 Export PDF
-          </PDFDownloadLink>
+          <div onClick={() => {
+            const { analytics } = require('@/app/lib/analytics')
+            analytics.trackConversion('pdf_exported', 1, { 
+              conversion_amount: a.conversionAmount,
+              tax_delta: a.taxDelta 
+            })
+          }}>
+            <PDFDownloadLink 
+              document={<RothAdvisorPDF state={state} analysis={a} />} 
+              fileName={`roth-advisor-${new Date().toISOString().split('T')[0]}.pdf`}
+              className="btn btn-sm"
+              style={{ fontSize: '13px' }}
+            >
+              📥 Export PDF
+            </PDFDownloadLink>
+          </div>
         )}
       </div>
 
