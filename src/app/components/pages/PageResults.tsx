@@ -11,6 +11,8 @@ import { analyze, fmt, fmtK } from '@/app/lib/engine'
 import { PDFDownloadLink } from '@react-pdf/renderer'
 import { RothAdvisorPDF } from '@/app/lib/pdf'
 import EmailCaptureModal from '@/app/components/EmailCaptureModal'
+import ScenarioComparison from '@/app/components/ScenarioComparison'
+import AdvisorEmailButton from '@/app/components/AdvisorEmailButton'
 import type { SessionState, ChatMessage, Session } from '@/app/lib/engine'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler)
@@ -23,7 +25,7 @@ interface Props {
   sessionId?: string
 }
 
-const TABS = ['Balance growth', 'RMD impact', 'Conversion plan', 'Social Security', 'Pro strategies', 'Ask your advisor']
+const TABS = ['Balance growth', 'RMD impact', 'Conversion plan', 'Social Security', 'Scenarios', 'Pro strategies', 'Ask your advisor']
 
 // ─────────────────────────────────────────────────────────────────────────────
 export default function PageResults({ state, chatHistory, chatInitialized, onChatUpdate, sessionId }: Props) {
@@ -93,6 +95,11 @@ export default function PageResults({ state, chatHistory, chatInitialized, onCha
         <div className="metric-card"><div className="metric-label">Forced annual RMD (est.)</div><div className="metric-value warn">{fmt(a.rmdEst)}</div></div>
       </div>
 
+      {/* Action buttons */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '1.5rem' }}>
+        <AdvisorEmailButton state={state} analysis={a} />
+      </div>
+
       {/* Alerts */}
       {state.age < 59 && (
         <div className="alert alert-warn">
@@ -126,8 +133,9 @@ export default function PageResults({ state, chatHistory, chatInitialized, onCha
       {activeTab === 1 && <TabRMD a={a} state={state} />}
       {activeTab === 2 && <TabSchedule a={a} state={state} />}
       {activeTab === 3 && <TabSocialSecurity a={a} state={state} />}
-      {activeTab === 4 && <TabProStrategies a={a} state={state} />}
-      {activeTab === 5 && (
+      {activeTab === 4 && <ScenarioComparison state={state} />}
+      {activeTab === 5 && <TabProStrategies a={a} state={state} />}
+      {activeTab === 6 && (
         <AdvisorChat
           state={state}
           chatHistory={chatHistory}
