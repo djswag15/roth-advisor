@@ -6,6 +6,7 @@ import {
   deleteSession, renameSession, getLastSessionId, setCurrentSessionId,
   getSessionsSortedByDate, buildSessionName, timeAgo, migrateSession,
 } from '@/app/lib/sessions'
+import { getShareTokenFromUrl, loadSessionByShareToken, syncSessionToCloud, generateShareLink } from '@/app/lib/supabase'
 import type { Session, SessionState } from '@/app/lib/engine'
 import WelcomeScreen from './WelcomeScreen'
 import { PageAbout, PageSavings, PageIncome, PageGoals } from './pages/PageAbout'
@@ -18,33 +19,54 @@ export default function RothAdvisor() {
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved')
   const [toast, setToast] = useState<string | null>(null)
   const [view, setView] = useState<'welcome' | 'app'>('welcome')
+  const [shareToken, setShareToken] = useState<string | null>(null)
+  const [shareLink, setShareLink] = useState<string | null>(null)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    const lastId = getLastSessionId()
-    if (lastId) {
-      const existing = getSession(lastId)
-      if (existing) {
-        setSession(migrateSession(existing))
+    const loadSession = async () => {
+      // Check if loading from shared link
+      const token = getShareTokenFromUrl()
+      if (token) {
+        const sharedSession = await loadSessionByShareToken(token)
+        if (sharedSession) {
+          setSession(migrateSession(sharedSession))
+          setShareToken(token)
+          setView('app')
+          return
+        }
+      }
+
+      // Otherwise, load last session or create new
+      const lastId = getLastSessionId()
+      if (lastId) {
+        const existing = getSession(lastId)
+        if (existing) {
+          setSession(migrateSession(existing))
+          setView('welcome')
+          return
+        }
+      }
+      const sessions = getSessionsSortedByDate()
+      if (sessions.length > 0) {
         setView('welcome')
-        return
+      } else {
+        const fresh = createSession()
+        setSession(fresh)
+        setView('app')
       }
     }
-    const sessions = getSessionsSortedByDate()
-    if (sessions.length > 0) {
-      setView('welcome')
-    } else {
-      const fresh = createSession()
-      setSession(fresh)
-      setView('app')
-    }
+
+    loadSession()
   }, [])
 
   const scheduleSave = useCallback((updated: Session) => {
     setSaveStatus('saving')
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
-    saveTimerRef.current = setTimeout(() => {
+    saveTimerRef.current = setTimeout(async () => {
       saveSession(updated)
+      // Sync to cloud
+      await syncSessionToCloud(updated)
       setSaveStatus('saved')
     }, 1200)
   }, [])
@@ -110,12 +132,16 @@ export default function RothAdvisor() {
     }
   }, [])
 
-  const handleSaveNow = useCallback(() => {
+  const handleSaveNow = useCallback(async () => {
     if (!session) return
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     saveSession(session)
+    // Sync to cloud and get share link
+    await syncSessionToCloud(session)
+    const link = generateShareLink(session.id)
+    setShareLink(link)
     setSaveStatus('saved')
-    setToast('Session saved')
+    setToast('Session saved & ready to share!')
     setTimeout(() => setToast(null), 2500)
   }, [session])
 
@@ -173,11 +199,39 @@ export default function RothAdvisor() {
           <span>{saveStatus === 'saving' ? 'Saving…' : 'All changes saved'}</span>
         </div>
         <div style={{ display: 'flex', gap: '7px', flexWrap: 'wrap' }}>
-          <button className="btn btn-sm" onClick={handleSaveNow}>Save now</button>
+          <button className="btn btn-sm" onClick={handleSaveNow}>Save & Share</button>
           <button className="btn btn-sm" onClick={() => setView('welcome')}>All sessions</button>
           <button className="btn btn-sm" onClick={startNew}>New session</button>
         </div>
       </div>
+
+      {shareLink && (
+        <div style={{ 
+          background: '#f0f9ff', 
+          border: '1px solid #0ea5e9', 
+          borderRadius: '8px', 
+          padding: '12px 16px', 
+          marginBottom: '1.25rem',
+          display: 'flex',
+          gap: '8px',
+          alignItems: 'center',
+          flexWrap: 'wrap'
+        }}>
+          <span style={{ fontSize: '14px', color: '#0c4a6e', flex: 1, minWidth: '200px', wordBreak: 'break-all' }}>
+            📎 Share: {shareLink}
+          </span>
+          <button 
+            className="btn btn-sm"
+            onClick={() => {
+              navigator.clipboard.writeText(shareLink)
+              setToast('Link copied!')
+              setTimeout(() => setToast(null), 2000)
+            }}
+          >
+            Copy Link
+          </button>
+        </div>
+      )}
 
       {currentPage === 0 && <PageAbout   {...pageProps} />}
       {currentPage === 1 && <PageSavings {...pageProps} />}

@@ -8,6 +8,8 @@ import {
   BarElement, Title, Tooltip, Legend, Filler,
 } from 'chart.js'
 import { analyze, fmt, fmtK } from '@/app/lib/engine'
+import { PDFDownloadLink } from '@react-pdf/renderer'
+import { RothAdvisorPDF } from '@/app/lib/pdf'
 import type { SessionState, ChatMessage } from '@/app/lib/engine'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler)
@@ -24,7 +26,12 @@ const TABS = ['Balance growth', 'RMD impact', 'Conversion plan', 'Social Securit
 // ─────────────────────────────────────────────────────────────────────────────
 export default function PageResults({ state, chatHistory, chatInitialized, onChatUpdate }: Props) {
   const [activeTab, setActiveTab] = useState(0)
+  const [isClient, setIsClient] = useState(false)
   const a = analyze(state)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   const score = a.score
   const verdict =
@@ -34,7 +41,19 @@ export default function PageResults({ state, chatHistory, chatInitialized, onCha
 
   return (
     <>
-      <div style={{ fontSize: 22, fontWeight: 500, marginBottom: '.75rem' }}>Your personalized analysis</div>
+      <div style={{ fontSize: 22, fontWeight: 500, marginBottom: '.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+        <span>Your personalized analysis</span>
+        {isClient && (
+          <PDFDownloadLink 
+            document={<RothAdvisorPDF state={state} analysis={a} />} 
+            fileName={`roth-advisor-${new Date().toISOString().split('T')[0]}.pdf`}
+            className="btn btn-sm"
+            style={{ fontSize: '13px' }}
+          >
+            📥 Export PDF
+          </PDFDownloadLink>
+        )}
+      </div>
 
       <div className={`alert ${verdict.cls} verdict`} style={{ padding: '1.25rem 1.4rem', borderRadius: 14, marginBottom: '1rem' }}>
         <div style={{ fontSize: 18, fontWeight: 500, marginBottom: '.35rem' }}>{verdict.label}</div>
