@@ -10,7 +10,8 @@ import {
 import { analyze, fmt, fmtK } from '@/app/lib/engine'
 import { PDFDownloadLink } from '@react-pdf/renderer'
 import { RothAdvisorPDF } from '@/app/lib/pdf'
-import type { SessionState, ChatMessage } from '@/app/lib/engine'
+import EmailCaptureModal from '@/app/components/EmailCaptureModal'
+import type { SessionState, ChatMessage, Session } from '@/app/lib/engine'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler)
 
@@ -19,19 +20,34 @@ interface Props {
   chatHistory: ChatMessage[]
   chatInitialized: boolean
   onChatUpdate: (history: ChatMessage[], initialized: boolean) => void
+  sessionId?: string
 }
 
 const TABS = ['Balance growth', 'RMD impact', 'Conversion plan', 'Social Security', 'Pro strategies', 'Ask your advisor']
 
 // ─────────────────────────────────────────────────────────────────────────────
-export default function PageResults({ state, chatHistory, chatInitialized, onChatUpdate }: Props) {
+export default function PageResults({ state, chatHistory, chatInitialized, onChatUpdate, sessionId }: Props) {
   const [activeTab, setActiveTab] = useState(0)
   const [isClient, setIsClient] = useState(false)
+  const [showEmailModal, setShowEmailModal] = useState(false)
+  const [emailModalShown, setEmailModalShown] = useState(false)
   const a = analyze(state)
 
   useEffect(() => {
     setIsClient(true)
   }, [])
+
+  // Show email capture modal on first page load
+  useEffect(() => {
+    if (isClient && !emailModalShown && activeTab === 0) {
+      // Delay showing modal to let page render first
+      const timer = setTimeout(() => {
+        setShowEmailModal(true)
+        setEmailModalShown(true)
+      }, 1500)
+      return () => clearTimeout(timer)
+    }
+  }, [isClient, emailModalShown, activeTab])
 
   const score = a.score
   const verdict =
@@ -41,6 +57,13 @@ export default function PageResults({ state, chatHistory, chatInitialized, onCha
 
   return (
     <>
+      {showEmailModal && sessionId && (
+        <EmailCaptureModal 
+          sessionId={sessionId} 
+          onClose={() => setShowEmailModal(false)}
+        />
+      )}
+
       <div style={{ fontSize: 22, fontWeight: 500, marginBottom: '.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <span>Your personalized analysis</span>
         {isClient && (

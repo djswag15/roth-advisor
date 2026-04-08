@@ -240,6 +240,7 @@ export default function RothAdvisor() {
       {currentPage === 4 && (
         <PageResults
           state={state}
+          sessionId={session.id}
           chatHistory={session.chatHistory}
           chatInitialized={session.chatInitialized}
           onChatUpdate={updateChatHistory}
