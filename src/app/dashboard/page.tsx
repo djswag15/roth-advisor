@@ -12,7 +12,13 @@ export default function DashboardPage() {
   const fetchMetrics = async () => {
     setRefreshing(true)
     try {
-      const response = await fetch('/api/dashboard/metrics')
+      // Get admin key from environment (Vercel env vars)
+      const adminKey = process.env.NEXT_PUBLIC_DASHBOARD_KEY
+      if (!adminKey) {
+        throw new Error('Dashboard key not configured')
+      }
+      
+      const response = await fetch(`/api/dashboard/metrics?admin_key=${encodeURIComponent(adminKey)}`)
       if (!response.ok) throw new Error('Failed to fetch metrics')
       const data = await response.json()
       setMetrics(data)

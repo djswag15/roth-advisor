@@ -1,10 +1,31 @@
 import { computeDashboardMetrics } from '@/app/lib/dashboard-metrics'
-import { NextResponse } from 'next/server'
+import { NextResponse, NextRequest } from 'next/server'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // Authentication: Require admin password as query param
+    // In production, use proper auth (Supabase auth token, JWT, etc.)
+    const adminPassword = request.nextUrl.searchParams.get('admin_key')
+    const expectedKey = process.env.DASHBOARD_ADMIN_KEY
+
+    // If admin key not configured, deny access
+    if (!expectedKey) {
+      return NextResponse.json(
+        { error: 'Dashboard not configured' },
+        { status: 403 }
+      )
+    }
+
+    // Validate admin key
+    if (!adminPassword || adminPassword !== expectedKey) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
     const metrics = await computeDashboardMetrics()
     return NextResponse.json(metrics, {
       headers: {
